@@ -1,0 +1,68 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class TodoApp {
+    private DefaultListModel<String> taskModel;
+    private JList<String> taskList;
+    private JTextField taskField;
+
+    public TodoApp() {
+        JFrame frame = new JFrame("To-Do List App");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 450);
+        frame.setLayout(new BorderLayout());
+
+        // Task Input Field
+        taskField = new JTextField();
+        frame.add(taskField, BorderLayout.NORTH);
+
+        // Task List
+        taskModel = new DefaultListModel<>();
+        taskList = new JList<>(taskModel);
+        JScrollPane scrollPane = new JScrollPane(taskList);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel();
+        JButton addButton = new JButton("Add Task");
+        JButton deleteButton = new JButton("Delete Task");
+        buttonPanel.add(addButton);
+        buttonPanel.add(deleteButton);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Add Task Action
+        addButton.addActionListener(e -> addTask());
+        // Delete Task Action
+        deleteButton.addActionListener(e -> deleteTask());
+        // Enter Key Adds Task
+        taskField.addActionListener(e -> addTask());
+
+        frame.setVisible(true);
+    }
+
+    private void addTask() {
+        String task = taskField.getText().trim();
+        if (!task.isEmpty()) {
+            taskModel.addElement(task);
+            taskField.setText("");
+        }
+    }
+
+    private void deleteTask() {
+        int selectedIndex = taskList.getSelectedIndex();
+        if (selectedIndex != -1) {
+            taskModel.remove(selectedIndex);
+        }
+    }
+
+    public static void main(String[] args) {
+        // Check for graphical environment
+        if (GraphicsEnvironment.isHeadless()) {
+            System.err.println("ERROR: No graphical environment detected. Please run this application on a system with a GUI.");
+            System.exit(1);
+        }
+        // Ensure GUI runs on Event Dispatch Thread
+        SwingUtilities.invokeLater(TodoApp::new);
+    }
+}
