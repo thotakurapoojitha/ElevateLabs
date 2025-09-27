@@ -1,0 +1,131 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class EmployeeDatabaseApp {
+    // Change these parameters based on your DB and credentials
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/employeedb"; // or "jdbc:postgresql://localhost:5432/employeedb"
+    private static final String DB_USER = "root"; // your DB username
+    private static final String DB_PASSWORD = "password"; // your DB password
+
+    public static void main(String[] args) {
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+             Scanner scanner = new Scanner(System.in)) {
+            System.out.println("Connected to the database!");
+            createTableIfNotExists(conn);
+
+            while (true) {
+                System.out.println("\n1. Add Employee");
+                System.out.println("2. View Employees");
+                System.out.println("3. Update Employee");
+                System.out.println("4. Delete Employee");
+                System.out.println("5. Exit");
+                System.out.print("Choose an option: ");
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // consume newline
+
+                switch (choice) {
+                    case 1:
+                        addEmployee(conn, scanner);
+                        break;
+                    case 2:
+                        viewEmployees(conn);
+                        break;
+                    case 3:
+                        updateEmployee(conn, scanner);
+                        break;
+                    case 4:
+                        deleteEmployee(conn, scanner);
+                        break;
+                    case 5:
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Invalid option!");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void createTableIfNotExists(Connection conn) throws SQLException {
+        String sql = "CREATE TABLE IF NOT EXISTS employees (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "name VARCHAR(100) NOT NULL," +
+                "salary DOUBLE NOT NULL" +
+                ")";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.execute();
+        }
+    }
+
+    private static void addEmployee(Connection conn, Scanner scanner) throws SQLException {
+        System.out.print("Enter name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter salary: ");
+        double salary = scanner.nextDouble();
+        scanner.nextLine();
+
+        String sql = "INSERT INTO employees (name, salary) VALUES (?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setDouble(2, salary);
+            int rows = stmt.executeUpdate();
+            if (rows > 0)
+                System.out.println("Employee added successfully!");
+        }
+    }
+
+    private static void viewEmployees(Connection conn) throws SQLException {
+        String sql = "SELECT * FROM employees";
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            System.out.printf("%-5s %-20s %-10s%n", "ID", "Name", "Salary");
+            while (rs.next()) {
+                System.out.printf("%-5d %-20s %-10.2f%n",
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getDouble("salary"));
+            }
+        }
+    }
+
+    private static void updateEmployee(Connection conn, Scanner scanner) throws SQLException {
+        System.out.print("Enter Employee ID to update: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
+        System.out.print("Enter new name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter new salary: ");
+        double salary = scanner.nextDouble();
+        scanner.nextLine();
+
+        String sql = "UPDATE employees SET name = ?, salary = ? WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setDouble(2, salary);
+            stmt.setInt(3, id);
+            int rows = stmt.executeUpdate();
+            if (rows > 0)
+                System.out.println("Employee updated!");
+            else
+                System.out.println("Employee not found.");
+        }
+    }
+
+    private static void deleteEmployee(Connection conn, Scanner scanner) throws SQLException {
+        System.out.print("Enter Employee ID to delete: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
+
+        String sql = "DELETE FROM employees WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            int rows = stmt.executeUpdate();
+            if (rows > 0)
+                System.out.println("Employee deleted!");
+            else
+                System.out.println("Employee not found.");
+        }
+    }
+}
