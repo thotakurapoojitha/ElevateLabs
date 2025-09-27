@@ -1,0 +1,69 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class ToDoApp extends JFrame {
+    private DefaultListModel<String> taskListModel;
+    private JList<String> taskList;
+    private JTextField taskField;
+    private JButton addButton, deleteButton;
+
+    public ToDoApp() {
+        setTitle("To-Do List App");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 400);
+        setLocationRelativeTo(null);
+
+        // Data model for the list
+        taskListModel = new DefaultListModel<>();
+        taskList = new JList<>(taskListModel);
+        JScrollPane scrollPane = new JScrollPane(taskList);
+
+        // Input field
+        taskField = new JTextField();
+        taskField.setPreferredSize(new Dimension(200, 30));
+
+        // Buttons
+        addButton = new JButton("Add Task");
+        deleteButton = new JButton("Delete Task");
+
+        // Layout
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new FlowLayout());
+        inputPanel.add(taskField);
+        inputPanel.add(addButton);
+        inputPanel.add(deleteButton);
+
+        add(scrollPane, BorderLayout.CENTER);
+        add(inputPanel, BorderLayout.SOUTH);
+
+        // Button actions
+        addButton.addActionListener(e -> addTask());
+        deleteButton.addActionListener(e -> deleteTask());
+
+        // Enter key adds task
+        taskField.addActionListener(e -> addTask());
+    }
+
+    private void addTask() {
+        String task = taskField.getText().trim();
+        if (!task.isEmpty()) {
+            taskListModel.addElement(task);
+            taskField.setText("");
+        }
+    }
+
+    private void deleteTask() {
+        int selected = taskList.getSelectedIndex();
+        if (selected != -1) {
+            taskListModel.remove(selected);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            ToDoApp app = new ToDoApp();
+            app.setVisible(true);
+        });
+    }
+}
